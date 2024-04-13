@@ -1,3 +1,7 @@
+'''
+To understand this workflow better, read this article:
+    * https://developer.spotify.com/documentation/web-api/tutorials/code-flow
+'''
 import base64
 import requests
 import json
@@ -9,18 +13,20 @@ load_dotenv()
 SPOTIFY_URL_AUTH = 'https://accounts.spotify.com/authorize/?'
 SPOTIFY_URL_TOKEN = 'https://accounts.spotify.com/api/token/'
 
-CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
+CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
+REDIRECT_URI = os.environ.get("SPOTIFY_REDIRECT_URI")
+print(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 
-# Port and callback url can be changed or ledt to localhost:5000
-PORT = "5000"
-CALLBACK_URL = "http://localhost"
-REDIRECT_URI = os.environ.get("SPOTIPY_REDIRECT_URI")
-
-# Add needed scope from spotify user (TODO: revisit this)
 # https://developer.spotify.com/documentation/web-api/concepts/scopes
-SCOPE = "user-read-private user-read-email user-library-read playlist-read-private"
-# SCOPE = "streaming user-read-birthdate user-read-email user-read-private"
+scopes = [
+    "user-read-private",
+    "user-read-email",
+    "user-read-recently-played",
+    "user-library-read",
+    "playlist-read-private"
+]
+SCOPE = ' '.join(scopes)
 
 
 def get_spotify_auth_url():
@@ -33,9 +39,9 @@ def get_spotify_auth_url():
     return url
 
 
-def get_token(code):
+def get_spotify_credentials(code):
     body = {
-        "grant_type": 'client_credentials',
+        "grant_type": 'authorization_code',
         "code": code,
         "redirect_uri": REDIRECT_URI,
         "client_id": CLIENT_ID,
@@ -51,5 +57,5 @@ def get_token(code):
 
     post = requests.post(SPOTIFY_URL_TOKEN, params=body, headers=headers)
     response = json.loads(post.text)
-    access_token = response.get("access_token")
-    return access_token
+    # print(response)
+    return response
